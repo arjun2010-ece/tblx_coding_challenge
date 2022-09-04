@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, ChangeEvent } from "react";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -11,53 +11,38 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Tables from "../Tables";
 import useDebounce from "../../hooks/useDebounce";
+import {
+  FETCH_CHARGING_STATIONS_QUERY,
+  SEARCH_CHARGING_STATIONS_QUERY,
+} from "../../gql";
+import { useTheme } from "@mui/material/styles";
+
+enum SOCKET_TYPE {
+  NORMAL = "Normal",
+  RAPIDO = "Rápido",
+}
+
+const API_URL = "https://frontend.challenges.tblx.io/graphql";
 
 const StyledSection = styled(Box)({
   background: "#E8ECEE",
 });
 
-const textFieldHeight = "44px";
-
 const StyledSearchField = styled(TextField)({
-  // minWidth: 280,
   "& .MuiInputBase-root": {
     borderRadius: "8rem",
     background: "white",
   },
 });
 
-const FETCH_CHARGING_STATIONS_QUERY = `
-{
-  getChargingStations{
-     id
-    address
-    socketNumber
-    socketType
-  }
-}
-`;
-
-const SEARCH_CHARGING_STATIONS_QUERY = `
-  query FetchData($municipality: String!, $address: String!, $location: String!, $postalCode: String! ){
-    getChargingStations(municipality : $municipality, address: $address, location: $location, postalCode: $postalCode){
-      id
-      address
-      socketNumber
-      socketType
-      municipality
-      postal
-    }
-}
-  `;
-
-
-
 const Content: FC = () => {
+  const [filterBy, setFilterBy] = useState<string>("");
   const [searchText, setSearchText] = useState<string>("");
   const [chargingStations, setChargingStations] = useState<any>([]);
   const [filteredChargingStations, setFilteredChargingStations] = useState<any>(
     []
   );
+  const [searchStations, setSearchStations] = useState<any>([]);
   const [searchByFields, setSearchByFields] = useState<any>({
     municipality: false,
     location: false,
@@ -66,61 +51,54 @@ const Content: FC = () => {
   });
 
   const debouncedValue = useDebounce<string>(searchText, 500);
+  const theme = useTheme();
 
   const { municipality, location, address, postalCode } = searchByFields;
 
-   const searchChargingStations = async (
-     municipality = "",
-     location = "",
-     address = "",
-     postalCode = ""
-   ) => {
-     console.log("CSSSS");
+  const searchChargingStations = async (
+    municipality = "",
+    location = "",
+    address = "",
+    postalCode = ""
+  ) => {
+    try {
+      const json = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: SEARCH_CHARGING_STATIONS_QUERY,
+          variables: {
+            municipality,
+            address,
+            location,
+            postalCode,
+          },
+        }),
+      });
 
-     try {
-       const json = await fetch("https://frontend.challenges.tblx.io/graphql", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({
-           query: SEARCH_CHARGING_STATIONS_QUERY,
-           variables: {
-             municipality,
-             address,
-             location,
-             postalCode,
-           },
-         }),
-       });
-
-       const {
-         data: { getChargingStations },
-       } = await json.json();
-       setFilteredChargingStations(getChargingStations);
-      //  console.log("Search", getChargingStations);
-       // console.log(getChargingStations);
-     } catch (error) {
-       console.log(error);
-     }
-   };
+      const {
+        data: { getChargingStations },
+      } = await json.json();
+      setSearchStations(getChargingStations);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     const fetchChargingStations = async () => {
       try {
-        const json = await fetch(
-          "https://frontend.challenges.tblx.io/graphql",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              query: FETCH_CHARGING_STATIONS_QUERY,
-            }),
-          }
-        );
+        const json = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: FETCH_CHARGING_STATIONS_QUERY,
+          }),
+        });
 
         const {
           data: { getChargingStations },
         } = await json.json();
-        console.log(getChargingStations);
         setChargingStations(getChargingStations);
       } catch (error) {
         console.log(error);
@@ -130,8 +108,6 @@ const Content: FC = () => {
   }, []);
 
   useEffect(() => {
-    // Do fetch here...
-    // Triggers when "debouncedValue" changes
     if (municipality && !location && !address && !postalCode)
       searchChargingStations(debouncedValue);
     else if (location && !municipality && !address && !postalCode)
@@ -142,19 +118,31 @@ const Content: FC = () => {
       searchChargingStations("", "", "", debouncedValue);
   }, [debouncedValue]);
 
-  const handleCheck = (e: any) => {
+  const handleCheck = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchByFields((oldState: any) => ({
       ...oldState,
       [e.target.name]: e.target.checked,
     }));
-    // searchChargingStations("");
   };
 
-  const handleSearch = (e: any) => {
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
   };
 
- 
+  const handleFilterBy = (filterText: string) => {
+    let filteredContent: any = [];
+    filteredContent = chargingStations.filter((el: any) => {
+      if (el.socketType === filterText) return true;
+      return false;
+    });
+    setFilteredChargingStations(filteredContent);
+
+    setFilterBy(filterText);
+  };
+
+  const handleResetFilter = () => {
+    setFilterBy("");
+  };
 
   return (
     <StyledSection component="section">
@@ -162,7 +150,12 @@ const Content: FC = () => {
         <Box pt={5}>
           <Typography variant="h6">Charging Stations</Typography>
           <Typography variant="body1" color="GrayText">
-            1546 charging stations
+            {searchText
+              ? searchStations.length
+              : filterBy
+              ? filteredChargingStations.length
+              : chargingStations.length} {" "}
+            charging stations
           </Typography>
 
           <Stack
@@ -174,25 +167,45 @@ const Content: FC = () => {
                 Socket type
               </Typography>
               <Stack direction="row" columnGap={2}>
-                <Button variant="outlined" color="secondary">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => handleFilterBy(SOCKET_TYPE.NORMAL)}
+                  onDoubleClick={handleResetFilter}
+                  sx={{
+                    border:
+                      filterBy === SOCKET_TYPE.NORMAL
+                        ? `3px solid ${theme.palette.common.black}`
+                        : "",
+                  }}
+                >
                   Normal
                 </Button>
-                <Button variant="outlined" color="secondary">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => handleFilterBy(SOCKET_TYPE.RAPIDO)}
+                  onDoubleClick={handleResetFilter}
+                  sx={{
+                    border:
+                      filterBy === SOCKET_TYPE.RAPIDO
+                        ? `3px solid ${theme.palette.common.black}`
+                        : "",
+                  }}
+                >
                   Rapido
                 </Button>
               </Stack>
             </Box>
 
-            {/* {JSON.stringify(searchByFields)} */}
 
-            <Box mt={4} >
+            <Box mt={4}>
               <StyledSearchField
                 fullWidth
                 size="small"
                 placeholder="Search Stations"
                 InputProps={{
                   startAdornment: <SearchIcon color="disabled" />,
-                  // style: { height: textFieldHeight },
                 }}
                 onChange={handleSearch}
               />
@@ -245,8 +258,13 @@ const Content: FC = () => {
               </Stack>
             </Box>
           </Stack>
-          {!searchText && <Tables chargingStations={chargingStations} />}
-          {searchText && <Tables chargingStations={filteredChargingStations} />}
+          {!searchText &&
+            (!filterBy ? (
+              <Tables chargingStations={chargingStations} />
+            ) : (
+              <Tables chargingStations={filteredChargingStations} />
+            ))}
+          {searchText && <Tables chargingStations={searchStations} />}
         </Box>
       </Container>
     </StyledSection>

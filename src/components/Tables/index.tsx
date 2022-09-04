@@ -1,11 +1,6 @@
-import { FC } from "react";
-import Container from "@mui/material/Container";
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import { styled } from "@mui/material/styles";
-
+import { FC, useEffect, useState } from "react";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import StarIcon from "@mui/icons-material/Star";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -13,12 +8,21 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-
+import useFavorites from "../../hooks/useFavorites";
+import Button from "@mui/material/Button";
 
 const Tables: FC<any> = ({ chargingStations }) => {
+  const [stations, setStations] = useState<any>(chargingStations);
+  const [favorites, toggleFavorite] = useFavorites();
+
+  useEffect(() => {
+    console.log(chargingStations);
+    setStations(chargingStations);
+  }, [favorites, chargingStations]);
+
   return (
     <TableContainer component={Paper}>
-      <Table  aria-label="simple table">
+      <Table aria-label="simple table">
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
@@ -29,25 +33,30 @@ const Tables: FC<any> = ({ chargingStations }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {chargingStations.map((row: any) => (
-            <TableRow
-              key={row.id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell component="th" scope="row">
-                {row.id}
-              </TableCell>
-              <TableCell align="left">{row.address}</TableCell>
-              <TableCell align="left">{row.socketNumber}</TableCell>
-              <TableCell align="left">{row.socketType}</TableCell>
-              <TableCell align="center">
-                <StarBorderIcon />
-              </TableCell>
-            </TableRow>
-          ))}
+          {stations.map((row: any) => {
+            const isFavorite = favorites.includes(row.id);
+
+            return (
+              <TableRow
+                key={row.id}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell component="th" scope="row">
+                  {row.id}
+                </TableCell>
+                <TableCell align="left">{row.address}</TableCell>
+                <TableCell align="left">{row.socketNumber}</TableCell>
+                <TableCell align="left">{row.socketType}</TableCell>
+                <TableCell align="center">
+                  <Button onClick={toggleFavorite(row.id)}>
+                    {isFavorite ? <StarIcon /> : <StarBorderIcon />}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
-      {/* id address socketNumber socketType StarBorderIcon*/}
     </TableContainer>
   );
 };
