@@ -10,13 +10,18 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import useFavorites from "../../hooks/useFavorites";
 import Button from "@mui/material/Button";
+import { ChargingStationType } from "../Content";
 
-const Tables: FC<any> = ({ chargingStations }) => {
-  const [stations, setStations] = useState<any>(chargingStations);
+type TablesProps = {
+  chargingStations: ChargingStationType[]
+};
+
+const Tables: FC<TablesProps> = ({ chargingStations }) => {
+  const [stations, setStations] =
+    useState<ChargingStationType[]>(chargingStations);
   const [favorites, toggleFavorite] = useFavorites();
 
   useEffect(() => {
-    console.log(chargingStations);
     setStations(chargingStations);
   }, [favorites, chargingStations]);
 
@@ -33,7 +38,7 @@ const Tables: FC<any> = ({ chargingStations }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {stations.map((row: any) => {
+          {stations.map((row: ChargingStationType) => {
             const isFavorite = favorites.includes(row.id);
 
             return (

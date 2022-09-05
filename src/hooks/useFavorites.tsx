@@ -1,19 +1,17 @@
-import { useEffect, useState, FC } from "react";
+import { useEffect, useState } from "react";
 
 const useFavorites = () => {
-  const [favorites, setFavorites] = useState<any>(() => {
-    const ls = localStorage.getItem("favorites");
+  const [favorites, setFavorites] = useState<string[] | any >(() => {
+    const ls = localStorage.getItem("favorites") as string;
     if (ls) return JSON.parse(ls);
     else return [];
   });
 
   const toggleItemInLocalStorage = (id: string) => () => {
-    console.log("ID::", id)
     const isFavorites = favorites.includes(id);
-    console.log("FBRT", isFavorites);
     if (isFavorites)
-      setFavorites((prev: any) => prev.filter((b: any) => b !== id));
-    else setFavorites((prev: any) => [...prev, id]);
+      setFavorites((prev: string[]) => prev.filter((b: string) => b !== id));
+    else setFavorites((prev: string[]) => [...prev, id]);
   };
 
   useEffect(() => {

@@ -35,15 +35,32 @@ const StyledSearchField = styled(TextField)({
   },
 });
 
+export interface ChargingStationType {
+  address: string;
+  id: string;
+  socketNumber: string;
+  socketType: string;
+  municipality?: string
+  postal?: string
+}
+
+type SearchByFieldsType = {
+  municipality: boolean;
+  location: boolean;
+  address: boolean;
+  postalCode: boolean
+};
+
 const Content: FC = () => {
   const [filterBy, setFilterBy] = useState<string>("");
   const [searchText, setSearchText] = useState<string>("");
-  const [chargingStations, setChargingStations] = useState<any>([]);
-  const [filteredChargingStations, setFilteredChargingStations] = useState<any>(
+  const [chargingStations, setChargingStations] = useState<ChargingStationType[]>(
     []
   );
-  const [searchStations, setSearchStations] = useState<any>([]);
-  const [searchByFields, setSearchByFields] = useState<any>({
+  const [filteredChargingStations, setFilteredChargingStations] =
+    useState<ChargingStationType[]>([]);
+  const [searchStations, setSearchStations] = useState<ChargingStationType[]>([]);
+  const [searchByFields, setSearchByFields] = useState<SearchByFieldsType>({
     municipality: false,
     location: false,
     address: false,
@@ -119,7 +136,7 @@ const Content: FC = () => {
   }, [debouncedValue]);
 
   const handleCheck = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchByFields((oldState: any) => ({
+    setSearchByFields((oldState: SearchByFieldsType) => ({
       ...oldState,
       [e.target.name]: e.target.checked,
     }));
@@ -130,8 +147,8 @@ const Content: FC = () => {
   };
 
   const handleFilterBy = (filterText: string) => {
-    let filteredContent: any = [];
-    filteredContent = chargingStations.filter((el: any) => {
+    let filteredContent: ChargingStationType[] = [];
+    filteredContent = chargingStations.filter((el: ChargingStationType) => {
       if (el.socketType === filterText) return true;
       return false;
     });
@@ -154,7 +171,7 @@ const Content: FC = () => {
               ? searchStations.length
               : filterBy
               ? filteredChargingStations.length
-              : chargingStations.length} {" "}
+              : chargingStations.length}{" "}
             charging stations
           </Typography>
 
@@ -197,7 +214,6 @@ const Content: FC = () => {
                 </Button>
               </Stack>
             </Box>
-
 
             <Box mt={4}>
               <StyledSearchField
