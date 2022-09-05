@@ -45,6 +45,7 @@ const Tables: FC<TablesProps> = ({ chargingStations }) => {
               <TableRow
                 key={row.id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                data-testid="tableRow"
               >
                 <TableCell component="th" scope="row">
                   {row.id}
