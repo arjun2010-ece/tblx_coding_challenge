@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ABT-00003",
+    "address": "A23 - Sublanço Abrantes / Mouriscas (Sentido Oeste/Este)",
+    "socketNumber": "3",
+    "socketType": "Rápido"
+  },
+  {
+    "id": "ABT-00002",
+    "address": "A23 - Sublanço Abrantes / Mouriscas (Sentido Este/Oeste)",
+    "socketNumber": "3",
+    "socketType": "Rápido"
+  },
+  {
+    "id": "ABT-00001",
+    "address": "Largo 1º De Maio",
+    "socketNumber": "2",
+    "socketType": "Normal"
+  },
+  {
+    "id": "AGD-00001",
+    "address": "Rua Joaquim Francisco Oliveira",
+    "socketNumber": "2",
+    "socketType": "Normal"
+  },
+  {
+    "id": "AGB-00001",
+    "address": "Av. Da Liberdade",
+    "socketNumber": "2",
+    "socketType": "Normal"
+  }
+]
